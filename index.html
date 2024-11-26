@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HanbatBot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f2f2f2;
+        }
+        .chat-container {
+            width: 600px;
+            height: 710px;
+            display: flex;
+            flex-direction: column;
+            border-radius: 20px;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+            overflow: auto;
+            background-color: #d9dbe9;
+        }
+        .chat-header {
+            background-color: #000000;
+            color: rgb(255, 255, 255);
+            text-align: center;
+            padding: 15px;
+            font-size: 1.1em;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            border-top: 1px solid #ffffff;
+            border-bottom: 1px solid #e0e0e0;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+        }
+        .message {
+            margin-bottom: 5px;
+            line-height: 2.0;
+        }
+        .user-message {
+            text-align: left;
+            color: #000000;
+        }
+        .bot-message {
+            text-align: right;
+            color: #000000;
+            
+        }
+        .chat-input {
+            display: flex;
+            padding: 15px;
+            border-top: 3px solid #000000;
+            background-color: #fafafa;
+        }
+        .chat-input input {
+            flex-grow: 1;
+            padding: 15px;
+            border: 1px solid #000000;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+        .chat-input button {
+            background-color: #a0a0a0;
+            color: rgb(255, 255, 255);
+            border: none;
+            padding: 20px;
+            margin-left: 8px;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 1.5em;
+        }
+        .chat-input button:hover {
+            background-color: #000000;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header"><b>국립한밭대학교 챗봇</b></div>
+        <div class="chat-messages" id="chat-messages">
+            <div class="message bot-message"></div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="chat-input" placeholder="메시지 ChatBPT"/>
+            <button>↑</button>
+        </div>
+    </div>
+
+    <script>
+        document.querySelector(".chat-input button").addEventListener("click", async () => {
+            const inputField = document.getElementById("chat-input");
+            const messageText = inputField.value.trim();
+
+            if (messageText !== "") {
+                const chatMessages = document.getElementById("chat-messages");
+
+                // 사용자 메시지 출력
+                const userMessage = document.createElement("div");
+                userMessage.classList.add("message", "user-message");
+                userMessage.textContent = `나: ${messageText}`;
+                chatMessages.appendChild(userMessage);
+
+                inputField.value = "";
+
+                // 서버에 메시지 보내기
+                const response = await fetch('http://127.0.0.1:5000/message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: messageText }),
+                });
+
+                const data = await response.json();
+
+                // 챗봇의 응답 출력
+                const botMessage = document.createElement("div");
+                botMessage.classList.add("message", "bot-message");
+                botMessage.innerHTML = `${data.response.replace(/\n/g, "<br>")}`; //\n 줄바꿈을 인식하고 <br>줄바꿈으로 변경하여 줄바꿈 출력 (박재우)
+                chatMessages.appendChild(botMessage);
+
+                // Scroll to the bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        });
+
+        document.getElementById("chat-input").addEventListener("keypress", function (e) {
+            if (e.key === "Enter") {
+                document.querySelector(".chat-input button").click();
+            }
+        });
+    </script>
+</body>
+</html>
